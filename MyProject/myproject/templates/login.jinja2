@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Signup</title>
+</head>
+<body>
+    <ul>
+        {% for message in messages %}
+            <li>{{message}}</li>
+
+        {% endfor %}
+
+    </ul>
+
+
+    <h1>Login</h1>
+
+        <form action="{{url}}" method="post">
+            <label for="email"></label>Email <input type="email" name="email" id="email">
+            <label for="password"></label>Password <input type="password" name="password" id="password">
+            <input type="submit" name="form.submitted"></input>
+        </form>
+
+</body>
+</html>
