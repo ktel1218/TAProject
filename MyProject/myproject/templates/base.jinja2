@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Project</title>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" />
+    <link href="{{request.static_url('myproject:static/style.css')}}" rel="stylesheet">
+    
+</head>
+<body>
+    <div class="navbar navbar-inverse navbar-static-top">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="/">Project</a>
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    {% if logged_in %}
+                    <li><a href="{{request.route_url('logout')}}">Log Out</a></li>
+                    {% else %}
+                    <li><a href="{{request.route_url('login')}}">Log In</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    {% block header %} Page Title {% endblock %}
+    {% if message %}
+        <p class="warning">{{message}}</p>
+    {% endif %}
+    {% block body %}
+        Content
+    {% endblock %}
+</body>
+</html>

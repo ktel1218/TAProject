@@ -8,7 +8,7 @@ from sqlalchemy.exc import DBAPIError
 
 from .models import (
     DBSession,
-    Provider,
+    User,
     )
 
 from pyramid.httpexceptions import (
@@ -21,55 +21,108 @@ from pyramid.security import (
     forget,
     )
 
+# from pyramid.events import NewRequest
+# from pyramid.events import subscriber
 
-@view_config(route_name='home', renderer='templates/mytemplate.jinja2')
-def my_view(request):
+# @subscriber(NewRequest)
+# def mysubscriber(event):
+#     print event
+
+
+@view_config(route_name='home', renderer='templates/home.jinja2', permission='view')
+def home(request):
     try:
-        provider = DBSession.query(Provider).filter(Provider.name == 'Provider One').first()
+        user = DBSession.query(User).filter(User.name == 'Provider One').first()
     except DBAPIError:
-        return Response(conn_err_msg, content_type='text/plain', status_int=500)
-    return {'provider': provider, 'project': 'MyProject'}
+        return Response(conn_err_msg, 
+                        content_type='text/plain', 
+                        status_int=500,
+                        )
+    return dict(
+        logged_in = request.authenticated_userid,
+        )
 
+@view_config(route_name='private', renderer='templates/private.jinja2', permission='view')
+def private(request):
+    return dict(
+        logged_in = request.authenticated_userid
+        )
 
-@view_config(route_name="signup", renderer='templates/signup.jinja2')
+@view_config(route_name='signup', renderer='templates/signup.jinja2')
 def signup(request):
-    messages = []
+    message = ''
+    email = ''
+    name = ''
+    password = ''
     if 'form.submitted' in request.params:
-        name = request.params['name']
         email = request.params['email']
+        name = request.params['name']
         password = request.params['password']
         confirm_password = request.params['confirm']
-        preexisting_user = DBSession.query(Provider).filter(Provider.name == name).first()
-        preexisting_email = DBSession.query(Provider).filter(Provider.email == email).first()
+        preexisting_user = DBSession.query(User).filter(User.name == name).first()
+        preexisting_email = DBSession.query(User).filter(User.email == email).first()
         matching_passwords = (password == confirm_password)
         if preexisting_user:
-            messages.append("A user by that name already exists")
+            message = message + "A user by that name already exists\n"
         if preexisting_email:
-            messages.append("That email address is already registered")
+            message = message + "That email address is already registered\n"
         if not matching_passwords:
-            messages.append("Passwords do not match")
-        if not messages:
-            new_user = Provider(name=name, email=email, password=password)
+            message = message + "Passwords do not match\n"
+        if not message:
+            new_user = User(name=name, email=email, password=password)
             DBSession.add(new_user)
-            return HTTPFound(location = request.route_url('home'))
-        
-    return {'messages': messages, 'url': request.route_url('signup') }
+            DBSession.flush()
+            headers = remember(request, new_user.id)
+            return HTTPFound(location = request.route_url('home'),
+                            headers = headers,
+                            )
 
-@view_config(route_name="login", renderer='templates/login.jinja2')
+    return dict(
+        message = message,
+        name = name,
+        email = email,
+        password = password,
+        )
+
+
+@view_config(route_name='login', renderer='templates/login.jinja2')
+@forbidden_view_config(renderer='templates/login.jinja2')
 def login(request):
-    messages = []
+    login_url = request.route_url('login')
+    referrer = request.url
+    print "CAME_FROM according to LOGIN", referrer
+
+    if referrer == login_url:
+        referrer = '/' # never use the login form itself as came_from
+    came_from = request.params.get('came_from', referrer)
+    message = ''
+    email = ''
+    password = ''
     if 'form.submitted' in request.params:
         email = request.params['email']
         password = request.params['password']
-        user = DBSession.query(Provider).filter(Provider.email == email)\
-                                        .filter(Provider.password == password).first()
-        if not user:
-            messages.append("Username and password do not match")
+        user = DBSession.query(User).filter(User.email == email).first()
+        if user and user.password == password:
+            headers = remember(request, user.id)
+            return HTTPFound(location = came_from,
+                            headers = headers,
+                            )
+        message = 'Failed login'
 
-        if not messages:
-            return HTTPFound(location = request.route_url('home'))
+    return dict(
+        message = message,
+        email = email,
+        password = password,
+        came_from = came_from,
+        )
 
-    return {'messages': messages, 'url': request.route_url('login')}
+
+@view_config(route_name='logout')
+def logout(request):
+    headers = forget(request)
+    return HTTPFound(location = request.route_url('home'),
+                     headers = headers,
+                     )
 
 
 # pagename = request.matchdict['pagename']

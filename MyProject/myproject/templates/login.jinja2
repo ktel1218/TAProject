@@ -1,26 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Signup</title>
-</head>
-<body>
-    <ul>
-        {% for message in messages %}
-            <li>{{message}}</li>
+{% extends 'base.jinja2' %}
 
-        {% endfor %}
-
-    </ul>
+{% block header %} <h1>Login</h1> {% endblock %}
 
 
-    <h1>Login</h1>
-
-        <form action="{{url}}" method="post">
-            <label for="email"></label>Email <input type="email" name="email" id="email">
-            <label for="password"></label>Password <input type="password" name="password" id="password">
+{% block body %}
+        <form action="{{request.route_url('login')}}" method="post">
+            <label for="email"></label>Email <input type="email" name="email" id="email" value="{{email}}">
+            <label for="password"></label>Password <input type="password" name="password" id="password" value="{{password}}">
             <input type="submit" name="form.submitted"></input>
         </form>
-
-</body>
-</html>
+        <p>
+            Don't have an account? 
+            <a href="{{request.route_url('signup')}}">Signup</a>
+        </p>
+{% endblock %}

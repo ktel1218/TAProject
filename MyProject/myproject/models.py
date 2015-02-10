@@ -13,6 +13,12 @@ from sqlalchemy.orm import (
     sessionmaker,
     )
 
+from pyramid.security import (
+    Allow,
+    Authenticated,
+    Everyone,
+    )
+
 from zope.sqlalchemy import ZopeTransactionExtension
 
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
@@ -27,15 +33,27 @@ Base = declarative_base()
 
 # Index('my_index', MyModel.name, unique=True, mysql_length=255)
 
-class Provider(Base):
-    __tablename__ = 'providers'
+class User(Base):
+    __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
     name = Column(Text, nullable=False)
     phone = Column(String(20))
     email = Column(String(60), nullable=False)
     password = Column(String(30), nullable=False)
 
-Index('provider_index', Provider.name, unique=True, mysql_length=255)
+Index('user_index', User.name, unique=True, mysql_length=255)
+
+class Status(Base):
+    __tablename__ = "statuses"
+    id = Column(Integer, primary_key=True)
+    name = Column(Text, nullable=False)
+
+class RootFactory(object):
+    __acl__ = [ (Allow, Authenticated, 'view'),
+                # (Allow, Everyone, 'view'),
+                (Allow, 'group:editors', 'edit') ]
+    def __init__(self, request):
+        pass
 
 
 
