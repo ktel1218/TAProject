@@ -4,11 +4,12 @@ from pyramid.view import (
     forbidden_view_config,
     )
 
-from sqlalchemy.exc import DBAPIError
+# from sqlalchemy.exc import DBAPIError
 
 from .models import (
     DBSession,
     User,
+    Status,
     )
 
 from pyramid.httpexceptions import (
@@ -31,13 +32,13 @@ from pyramid.security import (
 
 @view_config(route_name='home', renderer='templates/home.jinja2', permission='view')
 def home(request):
-    try:
-        user = DBSession.query(User).filter(User.name == 'Provider One').first()
-    except DBAPIError:
-        return Response(conn_err_msg, 
-                        content_type='text/plain', 
-                        status_int=500,
-                        )
+    # try:
+    #     user = DBSession.query(User).filter(User.name == 'Provider One').first()
+    # except DBAPIError:
+    #     return Response(conn_err_msg, 
+    #                     content_type='text/plain', 
+    #                     status_int=500,
+    #                     )
     return dict(
         logged_in = request.authenticated_userid,
         )
@@ -124,6 +125,15 @@ def logout(request):
                      headers = headers,
                      )
 
+@view_config(route_name='profile', permission='view')
+def profile(request):
+    # pass
+    user = DBSession.query(User).get(request.authenticated_userid)
+    # print "#####################"
+    # print user.status_assn_obj
+    user.statuses.append('admin')
+    # print user.status_assn_obj
+    return Response(body="Hey, this is your profile")
 
 # pagename = request.matchdict['pagename']
 
