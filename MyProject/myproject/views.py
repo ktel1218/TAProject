@@ -10,6 +10,7 @@ from .models import (
     DBSession,
     User,
     Status,
+    Profile,
     )
 
 from pyramid.httpexceptions import (
@@ -22,6 +23,7 @@ from pyramid.security import (
     forget,
     )
 
+import transaction
 # from pyramid.events import NewRequest
 # from pyramid.events import subscriber
 
@@ -29,6 +31,20 @@ from pyramid.security import (
 # def mysubscriber(event):
 #     print event
 
+@view_config(route_name='alter_user_standing', permission='view')
+def alter_rating(request):
+    operator = request.matchdict['operator']
+    this_user = DBSession.query(User).get(request.matchdict['id'])
+    logged_in_user = DBSession.query(User).get(request.authenticated_userid)
+    if (logged_in_user and 
+            logged_in_user is not this_user and 
+            logged_in_user.social_score > 0):
+        if operator == "+":
+            this_user.social_score += (1 * (logged_in_user.social_score / 3))
+        if operator == "-":
+            this_user.social_score -= (1 * (logged_in_user.social_score / 3))
+
+    return Response(body="Oh hey, this worked")
 
 @view_config(route_name='home', renderer='templates/home.jinja2', permission='view')
 def home(request):
@@ -125,15 +141,40 @@ def logout(request):
                      headers = headers,
                      )
 
-@view_config(route_name='profile', permission='view')
-def profile(request):
-    # pass
-    user = DBSession.query(User).get(request.authenticated_userid)
-    # print "#####################"
-    # print user.status_assn_obj
-    user.statuses.append('admin')
-    # print user.status_assn_obj
-    return Response(body="Hey, this is your profile")
+# @view_config(route_name='profile', permission='view')
+# def profile(request):
+#     # pass
+#     user = DBSession.query(User).get(request.authenticated_userid)
+#     # print "#####################"
+#     # print user.status_assn_obj
+#     admin_status = DBSession.query(Status).filter_by(name="admin")
+#     user.user_status.append(admin_status)
+#     # print user.status_assn_obj
+#     return Response(body="Hey, this is your profile")
+
+
+
+
+# @view_config(route_name='view_profile')
+# def view_profile(request):
+#     print "WTF"
+#     return Response(
+#             body="you can't see this unless you're logged in"
+#         )
+
+@view_config(route_name='idea')
+def view_idea(request):
+    new_profile = Profile(user_id = request.authenticated_userid, time="whatever")
+    DBSession.add(new_profile)
+    return Response(
+        body = "you are even"
+        )
+
+# @view_config(route_name='create_profile', permission='view')
+# def create_profile(request):
+#     return Response(
+#         body="whoa is this working?"
+#         )
 
 # pagename = request.matchdict['pagename']
 
