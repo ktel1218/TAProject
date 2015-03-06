@@ -88,16 +88,16 @@ class Profile(Base):
     owner = relationship("User")
 
 
-    def __init__(self, request, user_id, time):
-        self.user_id = user_id
-        self.time = time
+    def __init__(self, request):
+        self.user_id = request.authenticated_userid
+        self.time = datetime.now()
         self.__acl__ = [ (Allow, self.owner, 'view'), ]
     
 
 
 class Idea(object):
     def __init__(self, request):
-        print "is anything happening?"
+        pass
 
 class Status(Base):
     __tablename__ = 'status'

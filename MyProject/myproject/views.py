@@ -164,11 +164,14 @@ def logout(request):
 
 @view_config(route_name='idea')
 def view_idea(request):
-    new_profile = Profile(user_id = request.authenticated_userid, time="whatever")
-    DBSession.add(new_profile)
-    return Response(
-        body = "you are even"
-        )
+    idea = request.context
+    print idea.time
+    print idea.user_id
+    print idea.__acl__
+    return Response("hey")
+    # return Response(
+    #     body = "you are even"
+    #     )
 
 # @view_config(route_name='create_profile', permission='view')
 # def create_profile(request):
