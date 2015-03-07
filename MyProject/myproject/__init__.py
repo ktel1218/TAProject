@@ -31,14 +31,12 @@ def main(global_config, **settings):
     config.add_route('signup', '/signup')
     config.add_route('login', '/login')
     config.add_route('logout', '/logout')
-    # config.add_route('view_profile', '/profile', factory='myproject.models.Profile')
-    # config.add_route('create_profile','/profile/create', factory='myproject.models.Profile')
+    config.add_route('create_profile','/profile', factory='myproject.models.Profile')
+    config.add_route('view_profile', '/profile/{id}', factory='myproject.models.ProfileFactory',
+                     traverse='/{id}')
     config.add_route('private', '/private')
+    config.add_route('forbidden', '/forbidden')
 
-
-    config.add_route('idea', 'ideas/{idea}', factory='myproject.models.Profile')
-    # config.add_route('idea', 'ideas/{idea}')
-    
 
     # users
     config.add_route('users', '/users')

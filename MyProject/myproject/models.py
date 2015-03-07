@@ -34,42 +34,7 @@ import transaction
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
-# class Model(object):
-#     """Base piece of content."""
 
-#     __tablename__ = None
-
-#     @property
-#     def __name__(self):
-#         return self.slug
-
-#     @property
-#     def __acl__(self):
-#         """Permissions."""
-
-#         return [(Allow, Everyone, 'view'),
-#                 (Allow, 'group:editors', ('edit', 'add', 'delete')),
-#         ]
-
-# class Expert(Model, Base):
-#     """Zana expert."""
-
-#     __tablename__ = 'experts'
-#     dbsession = DBSession
-
-#     @reify
-#     def __parent__(self):
-#         from .expertsfolder import experts_folder
-
-#         return experts_folder
-
-#     __cms__ = [
-#         Action('View', '', 'view'),
-#         Action('Debug', '@@debug', 'edit'),
-#         Action('Edit', '@@edit', 'edit'),
-#         Action('Delete', '@@delete', 'delete'),
-#         Action('Add Expert', '../@@add', 'add'),
-#     ]
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
@@ -79,19 +44,40 @@ class User(Base):
     social_score = Column(Integer, default=0)
 
 
+
+class ProfileFactory(object):
+
+    def __init__(self, request):
+        self.request = request
+
+    def __getitem__(self, id):
+        profile = DBSession.query(Profile).get(id)
+        profile.__parent__ = self
+        profile.__name__ = id
+        return profile
+
+    def __setitem__(self, key, value):
+        """Add child. """
+
+        value.slug = key
+        self.add_child(child=value)
+
+
+
 class Profile(Base):
     __tablename__ = 'profiles'
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
-    time = Column(DateTime, default=datetime.now())
+    user_id = Column(Integer, ForeignKey('users.id'), unique=True)
 
     owner = relationship("User")
 
-
     def __init__(self, request):
         self.user_id = request.authenticated_userid
-        self.time = datetime.now()
-        self.__acl__ = [ (Allow, self.owner, 'view'), ]
+
+    @property
+    def __acl__(self):
+        acl = [ (Allow, self.owner, 'view'), ]
+        return acl
     
 
 

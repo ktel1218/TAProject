@@ -1,0 +1,9 @@
+{% extends 'base.jinja2' %}
+{% block header %} Profile {% endblock %}
+
+{% block body %}
+
+<h1>{{context.owner}}</h1>
+<p>{{context.time}} | {{body}}</p>
+
+{% endblock %}

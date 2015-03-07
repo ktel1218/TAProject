@@ -1,6 +1,7 @@
 from pyramid.response import Response
 from pyramid.view import (
     view_config,
+    view_defaults,
     forbidden_view_config,
     )
 
@@ -11,6 +12,7 @@ from .models import (
     User,
     Status,
     Profile,
+    RootFactory
     )
 
 from pyramid.httpexceptions import (
@@ -103,7 +105,7 @@ def signup(request):
 
 
 @view_config(route_name='login', renderer='templates/login.jinja2')
-@forbidden_view_config(renderer='templates/login.jinja2')
+@forbidden_view_config(renderer='templates/login.jinja2', containment=RootFactory)
 def login(request):
     login_url = request.route_url('login')
     referrer = request.url
@@ -133,6 +135,11 @@ def login(request):
         came_from = came_from,
         )
 
+@view_config(route_name='forbidden', renderer='templates/forbidden.jinja2')
+@forbidden_view_config(renderer='templates/forbidden.jinja2', containment=Profile)
+def forbidden(request):
+    return {"body": "you can't see this page"}
+
 
 @view_config(route_name='logout')
 def logout(request):
@@ -141,45 +148,24 @@ def logout(request):
                      headers = headers,
                      )
 
-# @view_config(route_name='profile', permission='view')
-# def profile(request):
-#     # pass
-#     user = DBSession.query(User).get(request.authenticated_userid)
-#     # print "#####################"
-#     # print user.status_assn_obj
-#     admin_status = DBSession.query(Status).filter_by(name="admin")
-#     user.user_status.append(admin_status)
-#     # print user.status_assn_obj
-#     return Response(body="Hey, this is your profile")
 
 
+@view_defaults(renderer='templates/profile.jinja2')
+class ProfileView(object):
+
+    @view_config(route_name='create_profile')
+    def create_profile(request):
+        profile = request.context
+        print profile.__acl__
+        return { "body" : "hey, a newly created profile"}
 
 
-# @view_config(route_name='view_profile')
-# def view_profile(request):
-#     print "WTF"
-#     return Response(
-#             body="you can't see this unless you're logged in"
-#         )
+    @view_config(route_name='view_profile', permission = "view")
+    def view_profile(request):
+        profile = request.context
+        print profile.__acl__
+        return Response(body = "hey, a profile")
 
-@view_config(route_name='idea')
-def view_idea(request):
-    idea = request.context
-    print idea.time
-    print idea.user_id
-    print idea.__acl__
-    return Response("hey")
-    # return Response(
-    #     body = "you are even"
-    #     )
-
-# @view_config(route_name='create_profile', permission='view')
-# def create_profile(request):
-#     return Response(
-#         body="whoa is this working?"
-#         )
-
-# pagename = request.matchdict['pagename']
 
 conn_err_msg = """\
 Pyramid is having a problem using your SQL database.  The problem
