@@ -160,10 +160,11 @@ class ProfileView(object):
         return { "body" : "hey, a newly created profile"}
 
 
-    @view_config(route_name='view_profile', permission = "view")
+    @view_config(route_name='view_profile', permission='view')
     def view_profile(request):
         profile = request.context
         print profile.__acl__
+        print "$$$$$$$$$$$$$$ owner: ", profile.owner
         return Response(body = "hey, a profile")
 
 

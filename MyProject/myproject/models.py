@@ -56,19 +56,18 @@ class ProfileFactory(object):
         profile.__name__ = id
         return profile
 
-    def __setitem__(self, key, value):
-        """Add child. """
+    # def __setitem__(self, key, value):
+    #     """Add child. """
 
-        value.slug = key
-        self.add_child(child=value)
+    #     value.slug = key
+    #     self.add_child(child=value)
 
 
 
 class Profile(Base):
     __tablename__ = 'profiles'
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), unique=True)
-
+    owner_id = Column(Integer, ForeignKey('users.id'), unique=True)
     owner = relationship("User")
 
     def __init__(self, request):
@@ -76,7 +75,7 @@ class Profile(Base):
 
     @property
     def __acl__(self):
-        acl = [ (Allow, self.owner, 'view'), ]
+        acl = [ (Allow, self.owner_id, 'view'), ]
         return acl
     
 
